@@ -1,0 +1,76 @@
+{% extends 'reviews/base.html' %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/" class="text-decoration-none text-muted">← Back to list</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ item.title }}</li>
+    </ol>
+</nav>
+
+<div class="row g-5">
+    <div class="col-lg-8">
+        <div class="mb-5">
+            <h1 class="display-4 fw-bold mb-3">{{ item.title }}</h1>
+            <p class="lead text-secondary">{{ item.description }}</p>
+        </div>
+
+        <hr class="my-5">
+
+        <h3 class="fw-bold mb-4">User Reviews <span class="badge bg-dark rounded-pill ms-2">{{ item.reviews.count }}</span></h3>
+        
+        {% for review in item.reviews.all %}
+            <div class="card mb-3 border-0 shadow-sm p-3" style="border-radius: 15px;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center fw-bold me-3" style="width: 40px; height: 40px;">
+                                {{ review.user.username|first|upper }}
+                            </div>
+                            <div>
+                                <h6 class="mb-0 fw-bold">{{ review.user.username }}</h6>
+                                <small class="text-muted">{{ review.created_at|date:"d.m.Y" }}</small>
+                            </div>
+                        </div>
+                        <div class="text-warning fw-bold fs-5">
+                            {% for i in "12345" %}
+                                {% if forloop.counter <= review.rating %}★{% else %}☆{% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <p class="card-text text-dark fs-5 italic" style="font-style: italic;">"{{ review.text }}"</p>
+                </div>
+            </div>
+        {% empty %}
+            <div class="text-center py-5 bg-white rounded-4 shadow-sm">
+                <p class="text-muted mb-0">There are no reviews yet. Be the first!</p>
+            </div>
+        {% endfor %}
+    </div>
+
+    <div class="col-lg-4">
+        <div class="sticky-top" style="top: 100px;">
+            <div class="card border-0 shadow-lg p-4 bg-dark text-white" style="border-radius: 20px;">
+                <h4 class="fw-bold mb-4 text-warning">Leave a review</h4>
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label class="form-label small text-uppercase fw-bold opacity-75">Your rating (1-5)</label>
+                        {{ form.rating }}
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label small text-uppercase fw-bold opacity-75">Your opinion</label>
+                        {{ form.text }}
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 py-3 rounded-pill shadow">
+                        Post a review
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
