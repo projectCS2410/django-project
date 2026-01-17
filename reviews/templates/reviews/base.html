@@ -1,71 +1,70 @@
-<!DOCTYPE html>
 {% load static %}
+<!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MovieRate | Your movie guide</title>
+
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
     <style>
-        /* Общий фон страницы — ТЕМНО-СЕРЫЙ */
         body {
-            background: #000000 !important; 
-            color: white;
+            background: #000000;
+            color: #ffffff;
             margin: 0;
             padding: 0;
-            overflow-x: hidden; /* Чтобы не было боковой прокрутки из-за дуги */
+            overflow-x: hidden;
         }
 
-        /* Навигация (делаем её полупрозрачной) */
         .navbar {
-            background-color: rgba(26, 26, 26, 0.95) !important;
+            background-color: rgba(26, 26, 26, 0.95);
             border-bottom: 1px solid #333;
         }
 
-        /* ВЕРХНИЙ БЛОК НА ВСЮ ШИРИНУ (Убрали из него все ограничения) */
         .movie-curve {
             position: relative;
             height: 75vh;
-            width: 100vw; /* Строго на всю ширину окна */
-            background: linear-gradient(rgba(26, 26, 26, 0.2), rgba(26, 26, 26, 0.6)), 
-                        url("{% static 'images/11.jpg' %}");
+            width: 100vw;
+            background:
+                linear-gradient(rgba(26,26,26,.2), rgba(26,26,26,.6)),
+                url("{% static 'images/11.jpg' %}");
             background-size: cover;
             background-position: center;
             display: flex;
             align-items: center;
             justify-content: center;
             overflow: hidden;
-            margin-top: -1px; /* Убираем возможную щель под набаром */
+            margin-top: -1px;
         }
 
-        /* Изогнутая линия (СЕРЫЙ ЦВЕТ под фон body) */
         .movie-curve::after {
             content: "";
             position: absolute;
-            bottom: -70px; 
+            bottom: -70px;
             left: -10%;
             width: 120%;
             height: 140px;
-            background: #000000; 
+            background: #000000;
             border-radius: 50% 50% 0 0;
-            box-shadow: 0px -15px 30px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 -15px 30px rgba(0,0,0,.5);
             z-index: 2;
         }
 
         .hero-content {
-            z-index: 10;
             position: relative;
+            z-index: 10;
             text-align: center;
         }
 
-        /* Убираем лишние отступы у футера */
         footer {
             background: #000000;
             margin: 0;
         }
     </style>
 </head>
+
 <body>
 
 <nav class="navbar navbar-expand-lg navbar-dark sticky-top shadow">
@@ -73,15 +72,24 @@
         <button class="btn border-0 me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMenu">
             <span class="navbar-toggler-icon"></span>
         </button>
-        <a class="navbar-brand fw-bold" href="/" style="color: #ffc107;">MOVIERATE</a>
-        
+
+        <a class="navbar-brand fw-bold text-warning" href="/">MOVIERATE</a>
+
         <form class="d-flex mx-auto" action="/" method="get" style="max-width: 400px; width: 100%;">
             <div class="input-group">
-                <input class="form-control border-0 bg-white text-dark" 
-                       type="search" name="q" placeholder="Search..." value="{{ query|default:'' }}"
-                       style="border-radius: 20px 0 0 20px; height: 38px;">
-                <a href="{% url 'advanced_search' %}" class="bg-white text-dark border-0 d-flex align-items-center px-3" 
-                   style="border-radius: 0 20px 20px 0; text-decoration: none;">⚯</a>
+                <input
+                    type="search"
+                    name="q"
+                    placeholder="Search..."
+                    value="{{ query|default:'' }}"
+                    class="form-control border-0 bg-white text-dark"
+                    style="border-radius: 20px 0 0 20px; height: 38px;"
+                >
+                <a
+                    href="{% url 'advanced_search' %}"
+                    class="bg-white text-dark d-flex align-items-center px-3"
+                    style="border-radius: 0 20px 20px 0; text-decoration: none;"
+                >⚯</a>
             </div>
         </form>
 
@@ -100,20 +108,22 @@
         <h5 class="offcanvas-title text-warning fw-bold">Menu</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
     </div>
+
     <div class="offcanvas-body p-0">
         <div class="list-group list-group-flush">
-            <a href="/" class="list-group-item list-group-item-action bg-dark text-white border-0 py-3">🏠 Main</a>
-            <a href="/admin/" class="list-group-item list-group-item-action bg-dark text-white border-0 py-3">⚙️ Settings</a>
+            <a href="/" class="list-group-item bg-dark text-white border-0 py-3">🏠 Main</a>
+            <a href="/admin/" class="list-group-item bg-dark text-white border-0 py-3">⚙️ Settings</a>
         </div>
     </div>
 </div>
 
-{% block content %}
-{% endblock %}
+{% block content %}{% endblock %}
 
 <footer class="py-5 text-center text-muted">
     <hr class="w-25 mx-auto border-secondary">
-    <a class="navbar-brand fw-bold" href="/" style="color: #ffc107;">&copy; 2026 MovieRate Project. Made in Django.</a>
+    <a class="navbar-brand fw-bold text-warning" href="/">
+        &copy; 2026 MovieRate Project. Made in Django.
+    </a>
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
