@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block title %}Sign up{% endblock %}
+
+{% block content %}
+  <div class="auth-wrap">
+    <div class="card auth-card">
+      <div class="card-inner">
+        <h1 class="auth-title">Create your account</h1>
+        <p class="help">It takes less than a minute.</p>
+
+        {% if form.errors %}
+          <div class="error">Please fix the errors below.</div>
+        {% endif %}
+
+        <form method="post" action="{% url 'signup' %}">
+          {% csrf_token %}
+          <div class="form-grid">
+            {{ form.as_p }}
+            <button class="btn btn-primary" type="submit">Create account</button>
+          </div>
+        </form>
+
+        <p class="help" style="margin-top:14px;">
+          Already have an account? <a href="{% url 'login' %}" style="text-decoration:underline;">Log in</a>
+        </p>
+      </div>
+    </div>
+  </div>
+{% endblock %}

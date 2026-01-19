@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+  <div class="hero">
+    <section class="card">
+      <div class="card-inner">
+        <h1>Films</h1>
+        <p>
+          {% if user.is_authenticated %}
+            Welcome, {{ user.get_username }}. Here’s your main page — replace the demo cards
+            with your real movies from the database later.
+          {% else %}
+            Welcome! This is the main page. Log in to personalize your experience.
+          {% endif %}
+        </p>
+
+        <div class="toolbar">
+          <div class="search">
+            <span class="search-icon" aria-hidden="true">⌕</span>
+            <form method="get" action="" class="search-form">
+              <input name="q" type="text" placeholder="Search films…" value="{{ q }}" />
+            </form>
+          </div>
+          <a class="btn btn-ghost" href="/admin/">Admin</a>
+          {% if user.is_authenticated %}
+            <form method="post" action="{% url 'logout' %}" style="margin:0;">
+              {% csrf_token %}
+              <button class="btn" type="submit">Log out</button>
+            </form>
+          {% else %}
+            <a class="btn" href="{% url 'login' %}">Log in</a>
+            <a class="btn btn-primary" href="{% url 'signup' %}">Sign up</a>
+          {% endif %}
+        </div>
+      </div>
+    </section>
+
+    <aside class="kpis">
+      <div class="kpi">
+        <div class="label">Signed in as</div>
+        <div class="value">
+          {% if user.is_authenticated %}
+            @{{ user.get_username }}
+          {% else %}
+            Guest
+          {% endif %}
+        </div>
+      </div>
+      <div class="kpi">
+        <div class="label">Total (demo)</div>
+        <div class="value">{{ films|length }} films</div>
+      </div>
+    </aside>
+  </div>
+
+  <div class="grid" style="margin-top:18px;">
+    {% for film in films %}
+      <article class="film-card">
+        <a class="film-cover" href="{% url 'film_detail' film.slug %}" aria-label="Open {{ film.title }}">
+          <img src="{% static film.image %}" alt="{{ film.title }} poster" loading="lazy" />
+        </a>
+        <div class="film-top">
+          <div>
+            <div class="film-title">{{ film.title }}</div>
+            <div class="film-meta">{{ film.year }} · {{ film.genre }}</div>
+          </div>
+          <div class="rating">★ {{ film.rating }}</div>
+        </div>
+        <div class="film-actions">
+          <a class="btn btn-primary" href="{% url 'film_detail' film.slug %}">Open</a>
+          <button class="btn" type="button" disabled>Save</button>
+        </div>
+
+        <div class="comments">
+          <div class="comments-head">
+            <div class="comments-title">Comments</div>
+            {% if not user.is_authenticated %}
+              <a class="btn btn-ghost" href="{% url 'login' %}">Log in to comment</a>
+            {% endif %}
+          </div>
+
+          {% if user.is_authenticated %}
+            <form method="post" class="comment-form">
+              {% csrf_token %}
+              <input type="hidden" name="film_title" value="{{ film.title }}" />
+              <div class="comment-row">
+                <textarea name="text" rows="2" maxlength="1000" placeholder="Write a comment…" required></textarea>
+                <button class="btn btn-primary" type="submit">Post</button>
+              </div>
+            </form>
+          {% endif %}
+
+          {% if film.comments %}
+            <ul class="comment-list">
+              {% for c in film.comments %}
+                <li class="comment">
+                  <div class="comment-meta">
+                    <span class="comment-user">
+                      {% if c.user %}@{{ c.user.get_username }}{% else %}Guest{% endif %}
+                    </span>
+                    <span class="comment-dot">·</span>
+                    <span class="comment-time">{{ c.created_at|date:"Y-m-d H:i" }}</span>
+
+                    {% if user.is_authenticated and c.user_id == user.id %}
+                      <span class="comment-dot">·</span>
+                      <form method="post" action="{% url 'delete_comment' c.id %}" style="margin:0;">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{% url 'home' %}" />
+                        <button class="btn btn-danger btn-xs" type="submit">Delete</button>
+                      </form>
+                    {% endif %}
+                  </div>
+                  <div class="comment-text">{{ c.text }}</div>
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <div class="comment-empty">No comments yet.</div>
+          {% endif %}
+        </div>
+      </article>
+    {% endfor %}
+  </div>
+{% endblock %}

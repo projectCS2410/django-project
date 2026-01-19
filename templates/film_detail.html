@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ film.title }}{% endblock %}
+
+{% block content %}
+  <section class="card">
+    <div class="card-inner">
+      <div class="detail-head">
+        <div>
+          <h1 style="margin:0 0 8px;">{{ film.title }}</h1>
+          <div class="detail-meta">{{ film.year }} · {{ film.genre }} · ★ {{ film.rating }}</div>
+        </div>
+        <a class="btn btn-ghost" href="{% url 'home' %}">← Back</a>
+      </div>
+
+      <div class="detail-body">
+        <div class="detail-poster">
+          <img src="{% static film.image %}" alt="{{ film.title }} poster" />
+        </div>
+        <div class="detail-copy">
+          <div class="detail-description">{{ film.description }}</div>
+          {% if film.trailer %}
+            <div class="detail-trailer">
+              <iframe src="{{ film.trailer }}" title="Trailer" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="comments" style="margin-top:18px;">
+        <div class="comments-head">
+          <div class="comments-title">Comments</div>
+          {% if not user.is_authenticated %}
+            <a class="btn btn-ghost" href="{% url 'login' %}">Log in to comment</a>
+          {% endif %}
+        </div>
+
+        {% if user.is_authenticated %}
+          <form method="post" class="comment-form">
+            {% csrf_token %}
+            <input type="hidden" name="film_title" value="{{ film.title }}" />
+            <div class="comment-row">
+              <textarea name="text" rows="2" maxlength="1000" placeholder="Write a comment…" required></textarea>
+              <button class="btn btn-primary" type="submit">Post</button>
+            </div>
+          </form>
+        {% endif %}
+
+        {% if comments %}
+          <ul class="comment-list">
+            {% for c in comments %}
+              <li class="comment">
+                <div class="comment-meta">
+                  <span class="comment-user">
+                    {% if c.user %}@{{ c.user.get_username }}{% else %}Guest{% endif %}
+                  </span>
+                  <span class="comment-dot">·</span>
+                  <span class="comment-time">{{ c.created_at|date:"Y-m-d H:i" }}</span>
+
+                  {% if user.is_authenticated and c.user_id == user.id %}
+                    <span class="comment-dot">·</span>
+                    <form method="post" action="{% url 'delete_comment' c.id %}" style="margin:0;">
+                      {% csrf_token %}
+                      <input type="hidden" name="next" value="{% url 'film_detail' film.slug %}" />
+                      <button class="btn btn-danger btn-xs" type="submit">Delete</button>
+                    </form>
+                  {% endif %}
+                </div>
+                <div class="comment-text">{{ c.text }}</div>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <div class="comment-empty">No comments yet.</div>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+{% endblock %}
