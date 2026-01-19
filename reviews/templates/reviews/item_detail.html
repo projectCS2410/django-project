@@ -1,0 +1,188 @@
+{% extends 'reviews/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-5 mt-5">
+
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="/" class="text-warning text-decoration-none">← Back to list</a>
+            </li>
+            <li class="breadcrumb-item active text-white-50" aria-current="page">
+                {{ item.title }}
+            </li>
+        </ol>
+    </nav>
+
+    <div class="row g-5">
+
+        <div class="col-lg-8">
+            <h1 class="display-3 fw-bold text-white mb-3">{{ item.title }}</h1>
+
+            {% if item.image %}
+                <div class="mb-4 rounded-4 overflow-hidden shadow-lg border border-secondary">
+                    <img
+                        src="{{ item.image.url }}"
+                        alt="{{ item.title }}"
+                        class="w-100"
+                        style="object-fit: contain; max-height: 600px;"
+                    >
+                </div>
+            {% endif %}
+
+            <p class="lead fs-4 text-white-50 mb-5" style="line-height: 1.8;">
+                {{ item.description }}
+            </p>
+
+            <hr class="border-secondary my-5">
+
+            <h3 class="fw-bold text-white mb-4">
+                User Reviews
+                <span class="badge bg-dark border border-secondary rounded-pill ms-2">
+                    {{ item.reviews.count }}
+                </span>
+            </h3>
+
+            {% for review in item.reviews.all %}
+                <div class="card mb-4 p-4 border-0 rounded-4 bg-dark border border-secondary">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="d-flex align-items-center">
+                            <div class="avatar bg-warning text-dark fw-bold me-3">
+                                {{ review.user.username|first|upper }}
+                            </div>
+                            <div>
+                                <h6 class="mb-0 text-white fw-bold">{{ review.user.username }}</h6>
+                                <small class="text-muted">
+                                    {{ review.created_at|date:"d.m.Y" }}
+                                </small>
+                            </div>
+                        </div>
+
+                        <div class="text-warning fs-5">
+                            {% for i in "12345" %}
+                                {% if forloop.counter <= review.rating %}★{% else %}☆{% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <p class="fs-5 text-white-50 fst-italic mb-0">
+                        "{{ review.text }}"
+                    </p>
+                </div>
+            {% empty %}
+                <div class="text-center py-5 border border-secondary rounded-4 border-dashed">
+                    <p class="text-muted mb-0">There are no reviews yet. Be the first!</p>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="col-lg-4">
+            <div class="sticky-top" style="top: 100px;">
+                <div class="card p-4 border-0 rounded-4 bg-dark border border-secondary shadow-lg">
+                    <h4 class="fw-bold text-warning mb-4">Leave a review</h4>
+
+                    <form method="post">
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <label class="form-label small text-uppercase fw-bold text-white-50">
+                                Your Rating
+                            </label>
+
+                            <div class="star-rating">
+                                {% for i in "54321" %}
+                                    <input type="radio" id="star{{ i }}" name="rating" value="{{ i }}" required>
+                                    <label for="star{{ i }}">★</label>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label small text-uppercase fw-bold text-white-50">
+                                Your opinion
+                            </label>
+                            <textarea
+                                name="text"
+                                rows="5"
+                                class="form-control custom-input"
+                                placeholder="What did you think?"
+                                required
+                            ></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-warning w-100 py-3 rounded-pill fw-bold transition-btn">
+                            Post a review
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<style>
+    .avatar {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .star-rating {
+        display: flex;
+        flex-direction: row-reverse;
+        justify-content: flex-end;
+    }
+
+    .star-rating input {
+        display: none;
+    }
+
+    .star-rating label {
+        font-size: 2.5rem;
+        color: #444;
+        cursor: pointer;
+        transition: 0.2s;
+        padding: 0 2px;
+    }
+
+    .star-rating label:hover,
+    .star-rating label:hover ~ label,
+    .star-rating input:checked ~ label {
+        color: #ffc107;
+    }
+
+    .custom-input {
+        background: #0d0d0d;
+        border: 1px solid #444;
+        color: #fff;
+        border-radius: 12px;
+        padding: 12px;
+    }
+
+    .custom-input:focus {
+        background: #000;
+        border-color: #ffc107;
+        box-shadow: none;
+    }
+
+    .transition-btn {
+        transition: 0.3s ease;
+    }
+
+    .transition-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 15px rgba(255,193,7,.3);
+    }
+
+    @media (max-width: 991px) {
+        .sticky-top {
+            position: static !important;
+        }
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,45 @@
+{% extends 'reviews/base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card border-0 shadow-lg p-5" style="border-radius: 25px; background-color: #1a1a1a; color: white;">
+            <h1 class="fw-bold mb-4 text-warning">Advanced Search</h1>
+            <p class="mb-5" style="color: rgba(255,255,255,0.8);">Set the filters to find the perfect movie for the evening.</p>
+            
+            <form action="/" method="get">
+                <div class="row g-4">
+                    <div class="col-12">
+                        <label class="form-label small text-uppercase fw-bold opacity-75">Name or description</label>
+                        <input type="text" name="q" class="form-control bg-dark border-secondary text-white py-3 shadow-none " placeholder="Enter keywords...">
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label small text-uppercase fw-bold opacity-75">Genre</label>
+                        <select name="genre" class="form-select bg-dark border-secondary text-white py-3 shadow-none">
+                            <option value="">All genres</option>
+                            <option value="action">Action</option>
+                            <option value="drama">Drama</option>
+                            <option value="sci-fi">Science fiction</option>
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label small text-uppercase fw-bold opacity-75">Minimum rating (from 1 to 5)</label>
+                        <input type="range" class="form-range" min="1" max="5" step="1" name="min_rating">
+                        <div class="d-flex justify-content-between text-warning fw-bold">
+                            <span>1★</span><span>2★</span><span>3★</span><span>4★</span><span>5★</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-5 d-grid gap-2">
+                    <button type="submit" class="btn btn-primary btn-lg rounded-pill fw-bold py-3 shadow">
+                        Search movie
+                    </button>
+                    <a href="/" class="btn btn-outline-light rounded-pill py-2">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
