@@ -1,4 +1,4 @@
-from django.shortcuts import redirect
+from django.shortcuts import redirect #Aka
 from django.views.generic import ListView, DetailView, TemplateView
 from django.db.models import Avg, Q
 from .models import Item
