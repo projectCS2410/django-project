@@ -60,14 +60,18 @@
     {% for film in films %}
       <article class="film-card">
         <a class="film-cover" href="{% url 'film_detail' film.slug %}" aria-label="Open {{ film.title }}">
-          <img src="{% static film.image %}" alt="{{ film.title }} poster" loading="lazy" />
+          {% if film.image %}
+            <img src="{{ film.image.url }}" alt="{{ film.title }} poster" loading="lazy" />
+          {% else %}
+            <img src="{% static 'images/no-poster.jpg' %}" alt="{{ film.title }} poster" loading="lazy" />
+          {% endif %}
         </a>
         <div class="film-top">
           <div>
             <div class="film-title">{{ film.title }}</div>
-            <div class="film-meta">{{ film.year }} · {{ film.genre }}</div>
+            <div class="film-meta">{{ film.year|default:"" }} · {{ film.genre|default:"" }}</div>
           </div>
-          <div class="rating">★ {{ film.rating }}</div>
+          <div class="rating">★ {{ film.rating|default:"-" }}</div>
         </div>
         <div class="film-actions">
           <a class="btn btn-primary" href="{% url 'film_detail' film.slug %}">Open</a>

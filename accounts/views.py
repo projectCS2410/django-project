@@ -2,8 +2,9 @@ from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.views import LoginView
+from django.db import models
 from django.http import Http404
-from django.shortcuts import redirect
+from django.shortcuts import redirect, get_object_or_404
 from django.shortcuts import render
 from django.urls import reverse_lazy
 from django.utils.text import slugify
@@ -11,93 +12,29 @@ from django.views.decorators.http import require_POST
 
 from .forms import FilmCommentForm
 from .models import FilmComment
-
-
-def _films_data():
-    films = [
-        {
-            'title': 'Interstellar',
-            'year': 2014,
-            'genre': 'Sci‑Fi',
-            'rating': '8.7',
-            'image': 'films/interstellar.jpg',
-            'description': 'A team of explorers travel through a wormhole in space in an attempt to ensure humanity\'s survival.',
-            'trailer': 'https://www.youtube.com/embed/2LqzF5WauAw',
-        },
-        {
-            'title': 'The Dark Knight',
-            'year': 2008,
-            'genre': 'Action',
-            'rating': '9.0',
-            'image': 'films/dark-knight.jpg',
-            'description': 'When the menace known as the Joker wreaks havoc and chaos on the people of Gotham, Batman must accept one of the greatest psychological and physical tests of his ability to fight injustice.',
-            'trailer': 'https://www.youtube.com/embed/LDG9bisJEaI',
-        },
-        {
-            'title': 'Inception',
-            'year': 2010,
-            'genre': 'Thriller',
-            'rating': '8.8',
-            'image': 'films/inception.jpg',
-            'description': 'A thief who steals corporate secrets through the use of dream-sharing technology is given the inverse task of planting an idea into the mind of a C.E.O.',
-            'trailer': 'https://www.youtube.com/embed/8hP9D6kZseM',
-        },
-        {
-            'title': 'Spirited Away',
-            'year': 2001,
-            'genre': 'Animation',
-            'rating': '8.6',
-            'image': 'films/spirited-away.jpg',
-            'description': 'During her family\'s move to the suburbs, a sullen 10-year-old girl wanders into a world ruled by gods, witches, and spirits, and where humans are changed into beasts.',
-            'trailer': 'https://www.youtube.com/embed/fDdjfF1Fy7A',
-        },
-        {
-            'title': 'The Matrix',
-            'year': 1999,
-            'genre': 'Sci‑Fi',
-            'rating': '8.7',
-            'image': 'films/matrix.jpg',
-            'description': 'When a beautiful stranger leads computer hacker Neo to a forbidding underworld, he discovers the shocking truth--the life he knows is the elaborate deception of an evil cyber-intelligence.',
-            'trailer': 'https://www.youtube.com/embed/m8e-FF8MsqU',
-        },
-        {
-            'title': 'Parasite',
-            'year': 2019,
-            'genre': 'Drama',
-            'rating': '8.5',
-            'image': 'films/parasite.jpg',
-            'description': 'Greed and class discrimination threaten the newly formed symbiotic relationship between the wealthy Park family and the destitute Kim clan.',
-            'trailer': 'https://www.youtube.com/embed/SEUXfv87Wpk',
-        },
-    ]
-
-    for film in films:
-        film['slug'] = slugify(film['title'])
-
-    return films
+from reviews.models import Item
 
 
 def _get_film_by_slug(slug: str):
-    for film in _films_data():
-        if film['slug'] == slug:
-            return film
-    raise Http404('Film not found')
+    """Get film from database by slug"""
+    return get_object_or_404(Item, slug=slug)
 
 
 def home(request):
-    films = _films_data()
-    allowed_titles = {film['title'] for film in films}
-
+    # Fetch films from database
+    films_qs = Item.objects.all()
+    
     q = (request.GET.get('q') or '').strip()
     if q:
         q_lower = q.lower()
-        films = [
-            film
-            for film in films
-            if q_lower in film['title'].lower()
-            or q_lower in film['genre'].lower()
-            or q_lower in str(film['year'])
-        ]
+        films_qs = films_qs.filter(
+            models.Q(title__icontains=q) |
+            models.Q(genre__icontains=q) |
+            models.Q(year__icontains=q)
+        )
+    
+    films = list(films_qs)
+    allowed_titles = {film.title for film in films}
 
     if request.method == 'POST':
         if not request.user.is_authenticated:
@@ -116,16 +53,19 @@ def home(request):
     else:
         form = FilmCommentForm()
 
+    # Add comments to each film
+    films_with_comments = []
     for film in films:
-        film['comments'] = list(
-            FilmComment.objects.filter(film_title=film['title']).select_related('user')[:10]
+        film.comments = list(
+            FilmComment.objects.filter(film_title=film.title).select_related('user')[:10]
         )
+        films_with_comments.append(film)
 
     return render(
         request,
         'home.html',
         {
-            'films': films,
+            'films': films_with_comments,
             'comment_form': form,
             'q': q,
         },
@@ -142,7 +82,7 @@ def film_detail(request, slug: str):
         form = FilmCommentForm(request.POST)
         if form.is_valid():
             comment = form.save(commit=False)
-            if comment.film_title != film['title']:
+            if comment.film_title != film.title:
                 messages.error(request, 'Invalid film.')
                 return redirect('film_detail', slug=slug)
             comment.user = request.user
@@ -150,10 +90,10 @@ def film_detail(request, slug: str):
             messages.success(request, 'Comment added.')
             return redirect('film_detail', slug=slug)
     else:
-        form = FilmCommentForm(initial={'film_title': film['title']})
+        form = FilmCommentForm(initial={'film_title': film.title})
 
     comments = list(
-        FilmComment.objects.filter(film_title=film['title']).select_related('user')[:25]
+        FilmComment.objects.filter(film_title=film.title).select_related('user')[:25]
     )
 
     return render(

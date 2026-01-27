@@ -9,14 +9,18 @@
       <div class="detail-head">
         <div>
           <h1 style="margin:0 0 8px;">{{ film.title }}</h1>
-          <div class="detail-meta">{{ film.year }} · {{ film.genre }} · ★ {{ film.rating }}</div>
+          <div class="detail-meta">{{ film.year|default:"" }} · {{ film.genre|default:"" }} · ★ {{ film.rating|default:"-" }}</div>
         </div>
         <a class="btn btn-ghost" href="{% url 'home' %}">← Back</a>
       </div>
 
       <div class="detail-body">
         <div class="detail-poster">
-          <img src="{% static film.image %}" alt="{{ film.title }} poster" />
+          {% if film.image %}
+            <img src="{{ film.image.url }}" alt="{{ film.title }} poster" />
+          {% else %}
+            <img src="{% static 'images/no-poster.jpg' %}" alt="{{ film.title }} poster" />
+          {% endif %}
         </div>
         <div class="detail-copy">
           <div class="detail-description">{{ film.description }}</div>
