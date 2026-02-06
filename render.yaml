@@ -1,0 +1,23 @@
+databases:
+  - name: myproject-db
+    databaseName: myproject_db
+    plan: free
+
+services:
+  - type: web
+    name: myproject
+    plan: free
+    runtime: python
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn myproject.wsgi:application"
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: myproject-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: PYTHON_VERSION
+        value: "3.12.3"
