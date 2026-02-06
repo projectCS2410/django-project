@@ -3,7 +3,7 @@ from django.contrib.auth import login
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.views import LoginView
 from django.db import models
-from django.http import Http404
+from django.http import Http404, JsonResponse, HttpResponseNotAllowed
 from django.shortcuts import redirect, get_object_or_404
 from django.shortcuts import render
 from django.urls import reverse_lazy
@@ -16,12 +16,10 @@ from reviews.models import Item
 
 
 def _get_film_by_slug(slug: str):
-    """Get film from database by slug"""
     return get_object_or_404(Item, slug=slug)
 
 
 def home(request):
-    # Fetch films from database
     films_qs = Item.objects.all()
     
     q = (request.GET.get('q') or '').strip()
@@ -53,7 +51,6 @@ def home(request):
     else:
         form = FilmCommentForm()
 
-    # Add comments to each film
     films_with_comments = []
     for film in films:
         film.comments = list(
@@ -123,6 +120,44 @@ def delete_comment(request, pk: int):
     comment.delete()
     messages.success(request, 'Comment deleted.')
     return redirect(request.POST.get('next') or 'home')
+
+
+def comment_api(request, pk: int):
+   
+    if not request.user.is_authenticated:
+        return JsonResponse({'error': 'authentication required'}, status=401)
+
+    try:
+        comment = FilmComment.objects.get(pk=pk)
+    except FilmComment.DoesNotExist:
+        return JsonResponse({'error': 'not found'}, status=404)
+
+    if comment.user_id != request.user.id:
+        return JsonResponse({'error': 'forbidden'}, status=403)
+
+    if request.method == 'DELETE':
+        comment.delete()
+        return JsonResponse({'status': 'deleted'})
+
+    if request.method == 'PUT':
+        import json
+
+        try:
+            data = json.loads(request.body.decode() or '{}')
+        except Exception:
+            return JsonResponse({'error': 'invalid json'}, status=400)
+
+        text = (data.get('text') or '').strip()
+        if not text:
+            return JsonResponse({'error': 'text required'}, status=400)
+        if len(text) > 1000:
+            return JsonResponse({'error': 'text too long'}, status=400)
+
+        comment.text = text
+        comment.save()
+        return JsonResponse({'status': 'updated', 'text': comment.text})
+
+    return HttpResponseNotAllowed(['PUT', 'DELETE'])
 
 
 class ForcedHomeLoginView(LoginView):

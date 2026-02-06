@@ -51,4 +51,102 @@
       </div>
     </main>
   </body>
+  <script>
+    (function(){
+      function getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+      }
+
+      function createEditor(originalText) {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'comment-editor';
+        const ta = document.createElement('textarea');
+        ta.className = 'comment-edit-text';
+        ta.rows = 3;
+        ta.maxLength = 1000;
+        ta.value = originalText;
+        const save = document.createElement('button');
+        save.type = 'button';
+        save.className = 'btn btn-primary btn-xs save-edit';
+        save.textContent = 'Save';
+        const cancel = document.createElement('button');
+        cancel.type = 'button';
+        cancel.className = 'btn btn-ghost btn-xs cancel-edit';
+        cancel.textContent = 'Cancel';
+        wrapper.appendChild(ta);
+        wrapper.appendChild(save);
+        wrapper.appendChild(cancel);
+        return wrapper;
+      }
+
+      document.addEventListener('click', async function(e){
+        const el = e.target;
+
+        if (el.matches('.edit-btn')) {
+          const id = el.dataset.id;
+          const li = el.closest('.comment');
+          if (!li) return;
+          const textEl = li.querySelector('.comment-text');
+          if (!textEl) return;
+          const orig = textEl.textContent.trim();
+          // avoid multiple editors
+          if (li.querySelector('.comment-editor')) return;
+          const editor = createEditor(orig);
+          // store original
+          editor.dataset.orig = orig;
+          // replace text node
+          textEl.style.display = 'none';
+          textEl.after(editor);
+        }
+
+        if (el.matches('.cancel-edit')) {
+          const editor = el.closest('.comment-editor');
+          if (!editor) return;
+          const li = editor.closest('.comment');
+          const textEl = li.querySelector('.comment-text');
+          editor.remove();
+          textEl.style.display = '';
+        }
+
+        if (el.matches('.save-edit')) {
+          const editor = el.closest('.comment-editor');
+          if (!editor) return;
+          const ta = editor.querySelector('.comment-edit-text');
+          const newText = (ta.value || '').trim();
+          if (!newText) { alert('Text is required'); return; }
+          if (newText.length > 1000) { alert('Text too long'); return; }
+          const li = editor.closest('.comment');
+          const id = li.querySelector('.edit-btn').dataset.id;
+
+          try {
+            const csrftoken = getCookie('csrftoken');
+            const res = await fetch(`/api/comments/${id}/`, {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken || ''
+              },
+              body: JSON.stringify({ text: newText })
+            });
+
+            if (!res.ok) {
+              const body = await res.json().catch(()=>({}));
+              alert(body.error || 'Failed to save');
+              return;
+            }
+
+            const data = await res.json().catch(()=>({}));
+            const textEl = li.querySelector('.comment-text');
+            textEl.textContent = data.text || newText;
+            editor.remove();
+            textEl.style.display = '';
+          } catch (err) {
+            alert('Network error');
+          }
+        }
+      });
+    })();
+  </script>
 </html>
