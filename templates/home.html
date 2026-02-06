@@ -108,16 +108,17 @@
                     <span class="comment-dot">·</span>
                     <span class="comment-time">{{ c.created_at|date:"Y-m-d H:i" }}</span>
 
-                    {% if user.is_authenticated and c.user_id == user.id %}
-                      <span class="comment-dot">·</span>
-                      <form method="post" action="{% url 'delete_comment' c.id %}" style="margin:0;">
-                        {% csrf_token %}
-                        <input type="hidden" name="next" value="{% url 'home' %}" />
-                        <button class="btn btn-danger btn-xs" type="submit">Delete</button>
-                      </form>
-                    {% endif %}
+                          {% if user.is_authenticated and c.user_id == user.id %}
+                            <span class="comment-dot">·</span>
+                            <form method="post" action="{% url 'delete_comment' c.id %}" style="margin:0; display:inline-block;">
+                              {% csrf_token %}
+                              <input type="hidden" name="next" value="{% url 'home' %}" />
+                              <button class="btn btn-danger btn-xs" type="submit">Delete</button>
+                            </form>
+                            <button class="btn btn-secondary btn-xs edit-btn" type="button" data-id="{{ c.id }}">Edit</button>
+                          {% endif %}
                   </div>
-                  <div class="comment-text">{{ c.text }}</div>
+                        <div class="comment-text" data-comment-id="{{ c.id }}">{{ c.text }}</div>
                 </li>
               {% endfor %}
             </ul>
